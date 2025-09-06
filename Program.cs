@@ -1,0 +1,141 @@
+﻿namespace task1
+{
+    public class Account
+    {
+        public string Name { get; set; }
+        public double Balance { get; protected set; }
+
+        public Account(string name = "Unnamed Account", double balance = 0.0)
+        {
+            Name = name;
+            Balance = balance;
+        }
+
+        public virtual bool Deposit(double amount)
+        {
+            if (amount < 0) return false;
+            Balance += amount;
+            return true;
+        }
+
+        public virtual bool Withdraw(double amount)
+        {
+            if (Balance - amount >= 0)
+            {
+                Balance -= amount;
+                return true;
+            }
+            return false;
+        }
+
+        public override string ToString()
+        {
+            return $"[Account: {Name}, Balance: {Balance}]";
+        }
+    }
+
+    public class SavingsAccount : Account
+    {
+        public double InterestRate { get; set; }
+
+        public SavingsAccount(string name = "Unnamed Savings", double balance = 0.0, double rate = 0.0)
+            : base(name, balance)
+        {
+            InterestRate = rate;
+        }
+
+        public override bool Deposit(double amount)
+        {
+            if (amount < 0) return false;
+            amount += (amount * InterestRate / 100);
+            return base.Deposit(amount);
+        }
+
+        public override string ToString()
+        {
+            return $"[SavingsAccount: {Name}, Balance: {Balance}, Rate: {InterestRate}%]";
+        }
+    }
+
+    public class CheckingAccount : Account
+    {
+        private const double Fee = 1.50;
+
+        public CheckingAccount(string name = "Unnamed Checking", double balance = 0.0)
+            : base(name, balance) { }
+
+        public override bool Withdraw(double amount)
+        {
+            amount += Fee;
+            return base.Withdraw(amount);
+        }
+
+        public override string ToString()
+        {
+            return $"[CheckingAccount: {Name}, Balance: {Balance}, Fee: {Fee}]";
+        }
+    }
+
+    public class TrustAccount : SavingsAccount
+    {
+        private int withdrawals = 0;
+        private const int MaxWithdrawals = 3;
+        private const double BonusThreshold = 5000.0;
+        private const double BonusAmount = 50.0;
+        private const double MaxWithdrawPercent = 0.2;
+
+        public TrustAccount(string name = "Unnamed Trust", double balance = 0.0, double rate = 0.0)
+            : base(name, balance, rate) { }
+
+        public override bool Deposit(double amount)
+        {
+            if (amount >= BonusThreshold)
+                amount += BonusAmount;
+            return base.Deposit(amount);
+        }
+
+        public override bool Withdraw(double amount)
+        {
+            if (withdrawals >= MaxWithdrawals || amount > Balance * MaxWithdrawPercent)
+                return false;
+            withdrawals++;
+            return base.Withdraw(amount);
+        }
+
+        public override string ToString()
+        {
+            return $"[TrustAccount: {Name}, Balance: {Balance}, Rate: {InterestRate}%, Withdrawals: {withdrawals}]";
+        }
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            SavingsAccount acc1 = new SavingsAccount("Ali", 1000, 5.0);
+            CheckingAccount acc2 = new CheckingAccount("Mona", 2000);
+            TrustAccount acc3 = new TrustAccount("Omar", 10000, 5.0);
+
+            Console.WriteLine("Initial Accounts: ");
+            Console.WriteLine(acc1);
+            Console.WriteLine(acc2);
+            Console.WriteLine(acc3);
+
+            Console.WriteLine(" Deposits ");
+            acc1.Deposit(1000);
+            acc2.Deposit(500);
+            acc3.Deposit(6000);
+            Console.WriteLine(acc1);
+            Console.WriteLine(acc2);
+            Console.WriteLine(acc3);
+
+            Console.WriteLine(" Withdrawals: ");
+            acc2.Withdraw(100);
+            acc3.Withdraw(1500);
+            Console.WriteLine(acc1);
+            Console.WriteLine(acc2);
+            Console.WriteLine(acc3);
+        }
+    }
+}
+
