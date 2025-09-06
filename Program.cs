@@ -1,141 +1,264 @@
-﻿namespace task1
+﻿namespace task22
 {
-    public class Account
+    public class Student
     {
+        public int StudentId { get; set; }
         public string Name { get; set; }
-        public double Balance { get; protected set; }
+        public int Age { get; set; }
+        public List<Course> Courses { get; set; }
 
-        public Account(string name = "Unnamed Account", double balance = 0.0)
+        public Student()
         {
-            Name = name;
-            Balance = balance;
+            Courses = new List<Course>();
         }
 
-        public virtual bool Deposit(double amount)
+        public bool Enroll(Course course)
         {
-            if (amount < 0) return false;
-            Balance += amount;
+            if (course == null)
+            {
+                return false;
+            }
+            Courses.Add(course);
             return true;
         }
 
-        public virtual bool Withdraw(double amount)
+        public string PrintDetails()
         {
-            if (Balance - amount >= 0)
+            return "ID: " + StudentId + ", Name: " + Name + ", Age: " + Age + ", Courses: " + Courses.Count;
+        }
+    }
+
+    public class Instructor
+    {
+        public int InstructorId { get; set; }
+        public string Name { get; set; }
+        public string Specialization { get; set; }
+
+        public string PrintDetails()
+        {
+            return "ID: " + InstructorId + ", Name: " + Name + ", Specialization: " + Specialization;
+        }
+    }
+
+    public class Course
+    {
+        public int CourseId { get; set; }
+        public string Title { get; set; }
+        public Instructor Instructor { get; set; }
+
+        public string PrintDetails()
+        {
+            string inst;
+            if (Instructor != null)
             {
-                Balance -= amount;
-                return true;
+                inst = Instructor.Name;
             }
-            return false;
-        }
-
-        public override string ToString()
-        {
-            return $"[Account: {Name}, Balance: {Balance}]";
-        }
-    }
-
-    public class SavingsAccount : Account
-    {
-        public double InterestRate { get; set; }
-
-        public SavingsAccount(string name = "Unnamed Savings", double balance = 0.0, double rate = 0.0)
-            : base(name, balance)
-        {
-            InterestRate = rate;
-        }
-
-        public override bool Deposit(double amount)
-        {
-            if (amount < 0) return false;
-            amount += (amount * InterestRate / 100);
-            return base.Deposit(amount);
-        }
-
-        public override string ToString()
-        {
-            return $"[SavingsAccount: {Name}, Balance: {Balance}, Rate: {InterestRate}%]";
+            else
+            {
+                inst = "No Instructor";
+            }
+            return "ID: " + CourseId + ", Title: " + Title + ", Instructor: " + inst;
         }
     }
 
-    public class CheckingAccount : Account
+    public class SchoolStudentManager
     {
-        private const double Fee = 1.50;
+        public List<Student> Students { get; set; }
+        public List<Course> Courses { get; set; }
+        public List<Instructor> Instructors { get; set; }
 
-        public CheckingAccount(string name = "Unnamed Checking", double balance = 0.0)
-            : base(name, balance) { }
-
-        public override bool Withdraw(double amount)
+        public SchoolStudentManager()
         {
-            amount += Fee;
-            return base.Withdraw(amount);
+            Students = new List<Student>();
+            Courses = new List<Course>();
+            Instructors = new List<Instructor>();
         }
 
-        public override string ToString()
+        public bool AddStudent(Student student)
         {
-            return $"[CheckingAccount: {Name}, Balance: {Balance}, Fee: {Fee}]";
-        }
-    }
-
-    public class TrustAccount : SavingsAccount
-    {
-        private int withdrawals = 0;
-        private const int MaxWithdrawals = 3;
-        private const double BonusThreshold = 5000.0;
-        private const double BonusAmount = 50.0;
-        private const double MaxWithdrawPercent = 0.2;
-
-        public TrustAccount(string name = "Unnamed Trust", double balance = 0.0, double rate = 0.0)
-            : base(name, balance, rate) { }
-
-        public override bool Deposit(double amount)
-        {
-            if (amount >= BonusThreshold)
-                amount += BonusAmount;
-            return base.Deposit(amount);
+            if (student == null) return false;
+            Students.Add(student);
+            return true;
         }
 
-        public override bool Withdraw(double amount)
+        public bool AddCourse(Course course)
         {
-            if (withdrawals >= MaxWithdrawals || amount > Balance * MaxWithdrawPercent)
+            if (course == null) return false;
+            Courses.Add(course);
+            return true;
+        }
+
+        public bool AddInstructor(Instructor instructor)
+        {
+            if (instructor == null) return false;
+            Instructors.Add(instructor);
+            return true;
+        }
+
+        public Student FindStudent(int studentId)
+        {
+            for (int i = 0; i < Students.Count; i++)
+            {
+                if (Students[i].StudentId == studentId)
+                {
+                    return Students[i];
+                }
+            }
+            return null;
+        }
+
+        public Course FindCourse(int courseId)
+        {
+            for (int i = 0; i < Courses.Count; i++)
+            {
+                if (Courses[i].CourseId == courseId)
+                {
+                    return Courses[i];
+                }
+            }
+            return null;
+        }
+
+        public Instructor FindInstructor(int instructorId)
+        {
+            for (int i = 0; i < Instructors.Count; i++)
+            {
+                if (Instructors[i].InstructorId == instructorId)
+                {
+                    return Instructors[i];
+                }
+            }
+            return null;
+        }
+
+        public bool EnrollStudentInCourse(int studentId, int courseId)
+        {
+            Student s = FindStudent(studentId);
+            Course c = FindCourse(courseId);
+
+            if (s == null || c == null)
+            {
                 return false;
-            withdrawals++;
-            return base.Withdraw(amount);
-        }
+            }
 
-        public override string ToString()
-        {
-            return $"[TrustAccount: {Name}, Balance: {Balance}, Rate: {InterestRate}%, Withdrawals: {withdrawals}]";
+            return s.Enroll(c);
         }
     }
 
     class Program
     {
-        static void Main()
+        static void Main(string[] args)
         {
-            SavingsAccount acc1 = new SavingsAccount("Ali", 1000, 5.0);
-            CheckingAccount acc2 = new CheckingAccount("Mona", 2000);
-            TrustAccount acc3 = new TrustAccount("Omar", 10000, 5.0);
+            SchoolStudentManager manager = new SchoolStudentManager();
+            bool running = true;
 
-            Console.WriteLine("Initial Accounts: ");
-            Console.WriteLine(acc1);
-            Console.WriteLine(acc2);
-            Console.WriteLine(acc3);
+            while (running)
+            {
+                Console.WriteLine("---- Student Management System ----");
+                Console.WriteLine("1. Add Student");
+                Console.WriteLine("2. Add Instructor");
+                Console.WriteLine("3. Add Course");
+                Console.WriteLine("4. Enroll Student in Course");
+                Console.WriteLine("5. Show All Students");
+                Console.WriteLine("6. Show All Courses");
+                Console.WriteLine("7. Show All Instructors");
+                Console.WriteLine("8. Exit");
+                Console.Write("Choose option: ");
+                string choice = Console.ReadLine();
 
-            Console.WriteLine(" Deposits ");
-            acc1.Deposit(1000);
-            acc2.Deposit(500);
-            acc3.Deposit(6000);
-            Console.WriteLine(acc1);
-            Console.WriteLine(acc2);
-            Console.WriteLine(acc3);
+                if (choice == "1")
+                {
+                    Student s = new Student();
+                    Console.Write("Enter Student ID: ");
+                    s.StudentId = int.Parse(Console.ReadLine());
+                    Console.Write("Enter Student Name: ");
+                    s.Name = Console.ReadLine();
+                    Console.Write("Enter Age: ");
+                    s.Age = int.Parse(Console.ReadLine());
 
-            Console.WriteLine(" Withdrawals: ");
-            acc2.Withdraw(100);
-            acc3.Withdraw(1500);
-            Console.WriteLine(acc1);
-            Console.WriteLine(acc2);
-            Console.WriteLine(acc3);
+                    manager.AddStudent(s);
+                    Console.WriteLine("Student added.\n");
+                }
+                else if (choice == "2")
+                {
+                    Instructor i = new Instructor();
+                    Console.Write("Enter Instructor ID: ");
+                    i.InstructorId = int.Parse(Console.ReadLine());
+                    Console.Write("Enter Instructor Name: ");
+                    i.Name = Console.ReadLine();
+                    Console.Write("Enter Specialization: ");
+                    i.Specialization = Console.ReadLine();
+
+                    manager.AddInstructor(i);
+                    Console.WriteLine("Instructor added.\n");
+                }
+                else if (choice == "3")
+                {
+                    Course c = new Course();
+                    Console.Write("Enter Course ID: ");
+                    c.CourseId = int.Parse(Console.ReadLine());
+                    Console.Write("Enter Course Title: ");
+                    c.Title = Console.ReadLine();
+
+                    Console.Write("Enter Instructor ID for this course: ");
+                    int iid = int.Parse(Console.ReadLine());
+                    c.Instructor = manager.FindInstructor(iid);
+
+                    manager.AddCourse(c);
+                    Console.WriteLine("Course added.\n");
+                }
+                else if (choice == "4")
+                {
+                    Console.Write("Enter Student ID: ");
+                    int sid = int.Parse(Console.ReadLine());
+                    Console.Write("Enter Course ID: ");
+                    int cid = int.Parse(Console.ReadLine());
+
+                    if (manager.EnrollStudentInCourse(sid, cid))
+                    {
+                        Console.WriteLine("Student enrolled.\n");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Enrollment failed.\n");
+                    }
+                }
+                else if (choice == "5")
+                {
+                    Console.WriteLine("All Students:");
+                    for (int i = 0; i < manager.Students.Count; i++)
+                    {
+                        Console.WriteLine(manager.Students[i].PrintDetails());
+                    }
+                    Console.WriteLine();
+                }
+                else if (choice == "6")
+                {
+                    Console.WriteLine("All Courses:");
+                    for (int i = 0; i < manager.Courses.Count; i++)
+                    {
+                        Console.WriteLine(manager.Courses[i].PrintDetails());
+                    }
+                    Console.WriteLine();
+                }
+                else if (choice == "7")
+                {
+                    Console.WriteLine("All Instructors:");
+                    for (int i = 0; i < manager.Instructors.Count; i++)
+                    {
+                        Console.WriteLine(manager.Instructors[i].PrintDetails());
+                    }
+                    Console.WriteLine();
+                }
+                else if (choice == "8")
+                {
+                    running = false;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid choice.\n");
+                }
+            }
         }
     }
 }
-
